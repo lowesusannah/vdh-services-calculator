@@ -11,46 +11,35 @@
   crossorigin="anonymous"></script>
 </head>
 <body>
-  <div class="outer">
-    <div class="inner">
-      <div id="container">
-        <form>
-          <div class="form-group">
-            <div class="before"><span class="fa fa-usd"></span></div>
-            <input type="number" id="fpl-income">
-            <select id="fpl-income-rate">
-              <option value="week">week</option>
-              <option value="month">month</option>
-              <option value="year">year</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <div class="before"><span class="fa fa-home"></span></div>
-            <input type="number" id="fpl-household">
-            <label>people in household</label>
-          </div>
-
-          <div class="form-group" id="results">
-            <p>Based on the above information, you qualify for <strong><span id="result-level" class="result">Level B</span></strong>. This means you are required to pay <strong><span class="result" id="result-percentage">10%</span></strong> of the total cost of services.</p>
-          </div>
-
-        </form>
-      </div>
+  <form>
+    <div>
+      <input type="number" id="income">
+      <select id="fpl-income-rate">
+        <option value="week">week</option>
+        <option value="month">month</option>
+        <option value="year">year</option>
+      </select>
     </div>
-  </div>
+    <div>
+      <input type="number" id="household">
+      <label>people live in my household</label>
+    </div>
+    <div id="results">
+      <p>Based on the above information, you qualify for <strong><span id="result-level" class="result">.
+    </div>
+  </form>
+
+
   <script>
-  var VA_FPL_CALCULATOR = function ( options ) {
+  var CALCULATOR = function ( options ) {
     this.options = options || {};
     this.showingResults = false;
 
-    // TODO: get these numbers from the FPLAPI once it is deployed
-    this.base = 11770; // based on 2015
-    this.rate = 4160;  // per additional household member
+    this.base = 22311; // based on wic income eligibility criteria good from May 1, 2017 through June 30, 2018
+    this.rate = 7733;  // per additional household member
 
     this.resultDomElement = document.getElementById('results');
     this.result_level = document.getElementById('result-level');
-    this.result_percentage = document.getElementById('result-percentage');
 
     this.data = {};
     for ( var d = 0; d < options.length; d++ ) {
@@ -67,70 +56,54 @@
     }
   }
 
-  VA_FPL_CALCULATOR.prototype.calculate = function () {
+  CALCULATOR.prototype.calculate = function () {
     var that = this;
+    var value = getResult() * 100;
 
-    var value = getFPL() * 100;
-
-    // if both values returned ar numbers, update the DOM
+    // if both values returned as numbers, update the DOM
     if ( !isNaN(value) ) this.update(value);
     else {
       this.resultDomElement.className = this.resultDomElement.className.replace(/\b show\b/, '');
       this.showingResults = false;
     }
 
-    function getFPL() {
-      var e = that.data['fpl-income-rate'].domElement;
-      var incomeValue = parseFloat(that.data['fpl-income'].domElement.value),
+    function getResult() {
+      var e = that.data['income-rate'].domElement;
+      var incomeValue = parseFloat(that.data['income'].domElement.value),
           incomeValueRate = e.options[e.selectedIndex].value,
-          householdSize = parseInt(that.data['fpl-household'].domElement.value);
+          householdSize = parseInt(that.data['household'].domElement.value);
 
-      var multiplier = {
-        'week': 52,
+      var frequency = {
+        'week': 52.1429,
         'month': 12,
         'year': 1
       };
 
-      var income = incomeValue * multiplier[incomeValueRate];
+      var income = incomeValue * frequency[incomeValueRate];
       that.currentValues = {
         income: income,
         householdSize: householdSize
       };
 
-      // calculate FPL
-      var fpl = income / (that.base + (that.rate * (householdSize-1)));
-      return fpl;
+      // calculate result
+      var result = income / (that.base + (that.rate * (householdSize-1)));
+      return result;
     }
   }
 
-  VA_FPL_CALCULATOR.prototype.update = function ( fpl ) {
+  VA_FPL_CALCULATOR.prototype.update = function ( result ) {
     if (!this.showingResults) {
       this.resultDomElement.className = this.resultDomElement.className + ' show';
       this.showingResults = true;
     }
-    var results = gatherResults(fpl);
-    function gatherResults(f) {
-      if ( f < 100 ) return ['Level A', '0%'];
-      else if ( f < 110 ) return ['Level B', '10%']
-      else if ( f < 133.29 ) return ['Level C', '25%']
-      else if ( f < 166.59 ) return ['Level D', '50%']
-      else if ( f < 200 ) return ['Level E', '75%']
-      else if ( f < 250 ) return ['Level F', '95%']
-      else return ['Level G', '100%']
-    }
+    var results = gatherResults(result);
+
     this.result_level.innerHTML = results[0];
     this.result_percentage.innerHTML = results[1];
   }
 
-
-
-
-
-
-
-
   function init() {
-    window.vafpl = new VA_FPL_CALCULATOR(['fpl-income', 'fpl-income-rate', 'fpl-household']);
+    window.vafpl = new CALCULATOR(['income', 'income-rate', 'household']);
   }
 
   window.onload = init;
