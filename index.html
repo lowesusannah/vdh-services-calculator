@@ -11,23 +11,26 @@
   crossorigin="anonymous"></script>
 </head>
 <body>
-  <form>
-    <div>
-      <input type="number" id="income">
-      <select id="fpl-income-rate">
-        <option value="week">week</option>
-        <option value="month">month</option>
-        <option value="year">year</option>
-      </select>
-    </div>
-    <div>
-      <input type="number" id="household">
-      <label>people live in my household</label>
-    </div>
+  <div>
+    <form>
+      <div>
+        <input type="number" id="income">
+        <select id="income-rate">
+          <option value="year">year</option>
+          <option value="week">week</option>
+          <option value="month">month</option>
+        </select>
+      </div>
+      <div>
+        <input type="number" id="household">
+        <label>people live in my household</label>
+      </div>
+      <input type="submit" value="calculate" accesskey="enter"></input>
+    </form>
     <div id="results">
-      <p>Based on the above information, you qualify for <strong><span id="result-level" class="result">.
+      <p>Based on the above information, you <strong><span id="result-level" class="result">.
     </div>
-  </form>
+  </div>
 
 
   <script>
@@ -39,21 +42,6 @@
     this.rate = 7733;  // per additional household member
 
     this.resultDomElement = document.getElementById('results');
-    this.result_level = document.getElementById('result-level');
-
-    this.data = {};
-    for ( var d = 0; d < options.length; d++ ) {
-      this.data[options[d]] = {};
-      this.data[options[d]].domElement = document.getElementById(options[d]);
-      value: null
-    };
-
-    // addEventHandlers();
-    for ( el in this.data ) {
-      console.log(el);
-      this.data[el].domElement.addEventListener('change', this.calculate.bind(this)); // change for select
-      this.data[el].domElement.addEventListener('keyup', this.calculate.bind(this));  // keydown for inputs
-    }
   }
 
   CALCULATOR.prototype.calculate = function () {
@@ -91,7 +79,7 @@
     }
   }
 
-  VA_FPL_CALCULATOR.prototype.update = function ( result ) {
+  CALCULATOR.prototype.update = function ( result ) {
     if (!this.showingResults) {
       this.resultDomElement.className = this.resultDomElement.className + ' show';
       this.showingResults = true;
@@ -103,7 +91,7 @@
   }
 
   function init() {
-    window.vafpl = new CALCULATOR(['income', 'income-rate', 'household']);
+    window.result = new CALCULATOR(['income', 'income-rate', 'household']);
   }
 
   window.onload = init;
